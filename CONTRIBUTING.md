@@ -37,6 +37,10 @@ These also drive the changelog (see [Releasing](#releasing)), so `feat:` and `fi
   `version` lifecycle script, and folds `CHANGELOG.md` into the version commit and tag — so a normal
   release needs no manual changelog step.
 
+You can do this bump locally, or run the **Prepare Release** workflow (manual dispatch, off `main`), which
+picks the bump from a `patch`/`minor`/`major` choice, runs the tests, and pushes the version commit and
+tag. The pushed `v*.*.*` tag then triggers the **Release** workflow.
+
 `CHANGELOG.md` is also the source of truth for **GitHub Release notes**: pushing a `v*.*.*` tag runs the
 release workflow, which extracts that version's section (`npm run release-notes <version>`, i.e.
 `scripts/extract-changelog.mjs`) and uses it as the release body, then publishes to npm.

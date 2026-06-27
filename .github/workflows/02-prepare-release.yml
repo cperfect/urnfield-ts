@@ -1,9 +1,19 @@
 name: Prepare Release
 permissions:
-  contents: read
+  contents: write # commit the version bump and push the tag
 
 on:
   workflow_dispatch:
+    inputs:
+      bump:
+        description: Semantic version bump
+        type: choice
+        required: true
+        default: patch
+        options:
+          - patch
+          - minor
+          - major
 
 jobs:
   prepare:
@@ -16,6 +26,12 @@ jobs:
         uses: actions/checkout@v4
         with:
           submodules: true
+          # Full history + tags so the changelog covers commits since the last tag.
+          fetch-depth: 0
+          # A PAT lets the pushed tag trigger the release workflow; without one it
+          # falls back to the default token, which bumps and pushes but cannot
+          # trigger another workflow.
+          token: ${{ secrets.RELEASE_TOKEN || github.token }}
 
       - name: Setup Node
         uses: actions/setup-node@v4
@@ -26,5 +42,18 @@ jobs:
       - name: NPM Install
         run: npm ci
 
-      - name: Run Prepare
-        run: npm run prepare
+      - name: Run Tests
+        run: npm run tests
+
+      - name: Configure git
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+
+      # npm version bumps package.json, runs preversion (lint) and version
+      # (regenerate + stage CHANGELOG.md), then commits and tags vX.Y.Z.
+      - name: Bump version
+        run: npm version ${{ inputs.bump }}
+
+      - name: Push commit and tag
+        run: git push --follow-tags
