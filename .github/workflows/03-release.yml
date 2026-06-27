@@ -39,7 +39,10 @@ jobs:
       - name: Publish to npm
         run: npm publish --provenance --access public
 
+      # The CHANGELOG is the source of truth for release notes.
       - name: Create GitHub Release
         env:
           GH_TOKEN: ${{ github.token }}
-        run: gh release create "$GITHUB_REF_NAME" --verify-tag --generate-notes
+        run: |
+          node scripts/extract-changelog.mjs "$GITHUB_REF_NAME" > release-notes.md
+          gh release create "$GITHUB_REF_NAME" --verify-tag --notes-file release-notes.md

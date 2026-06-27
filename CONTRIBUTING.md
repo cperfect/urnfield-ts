@@ -37,6 +37,10 @@ These also drive the changelog (see [Releasing](#releasing)), so `feat:` and `fi
   `version` lifecycle script, and folds `CHANGELOG.md` into the version commit and tag — so a normal
   release needs no manual changelog step.
 
+`CHANGELOG.md` is also the source of truth for **GitHub Release notes**: pushing a `v*.*.*` tag runs the
+release workflow, which extracts that version's section (`npm run release-notes <version>`, i.e.
+`scripts/extract-changelog.mjs`) and uses it as the release body, then publishes to npm.
+
 ## Testing
 
 Please update the tests to reflect your code changes. Pull requests will not be accepted if they are failing on GitHub actions.
