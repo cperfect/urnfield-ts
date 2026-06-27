@@ -78,6 +78,32 @@ describe('format error handling', () => {
     expect(() => format({ ...base, nss: [] })).to.throw(UrnFormatError);
     expect(() => format({ ...base, nid: '' })).to.throw(UrnFormatError);
   });
+
+  it('rejects NSS elements that would not round-trip', () => {
+    // element carrying the active delimiter -> would be re-split
+    expect(() => format({ ...base, nss: ['a:b'] })).to.throw(UrnFormatError);
+    expect(() => format({ ...base, nss: ['a', 'b'], nssSlashDelimiter: true })).to.not.throw();
+    // slash-delimited element carrying ':' -> a re-parse prefers ':'
+    expect(() => format({ ...base, nss: ['a', 'b:c'], nssSlashDelimiter: true })).to.throw(UrnFormatError);
+    // lone ':'-delimited element carrying '/' -> a re-parse would split on '/'
+    expect(() => format({ ...base, nss: ['a/b'] })).to.throw(UrnFormatError);
+    // but '/' inside a multi-element ':'-delimited NSS is preserved and round-trips
+    const okWithInnerSlash: ParsedUrn = { ...base, nss: ['a', 'b/c'] };
+    expect(format(okWithInnerSlash)).to.equal('urn:isbn:a:b/c');
+    expect(parse(format(okWithInnerSlash))).to.deep.equal(okWithInnerSlash);
+  });
+
+  it('rejects malformed component shapes as UrnFormatError (not TypeError)', () => {
+    const bad = (over: Partial<Record<string, unknown>>): (() => string) =>
+      () => format({ ...base, ...over } as unknown as ParsedUrn);
+    expect(bad({ query: undefined })).to.throw(UrnFormatError);
+    expect(bad({ query: null })).to.throw(UrnFormatError);
+    expect(bad({ resolvers: 'nope' })).to.throw(UrnFormatError);
+    expect(bad({ query: { k: 'not-an-array' } })).to.throw(UrnFormatError);
+    expect(bad({ query: { k: [42] } })).to.throw(UrnFormatError);
+    expect(bad({ fragment: 123 })).to.throw(UrnFormatError);
+    expect(bad({ nss: ['ok', 7] })).to.throw(UrnFormatError);
+  });
 });
 
 describe('round-trip properties', () => {
