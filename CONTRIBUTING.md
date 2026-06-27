@@ -30,20 +30,20 @@ These also drive the changelog (see [Releasing](#releasing)), so `feat:` and `fi
 ## Releasing
 
 `CHANGELOG.md` is generated from the conventional commits since the last release tag, using
-[`conventional-changelog`](https://github.com/conventional-changelog/conventional-changelog):
+[`conventional-changelog`](https://github.com/conventional-changelog/conventional-changelog). A release is
+two manual steps:
 
-- `npm run changelog` regenerates `CHANGELOG.md` for the **current** `package.json` version.
-- `npm version <patch|minor|major>` bumps the version, runs `npm run changelog` automatically via the
-  `version` lifecycle script, and folds `CHANGELOG.md` into the version commit and tag — so a normal
-  release needs no manual changelog step.
+1. **Prepare Release** (workflow, manual dispatch, off `main`) — pick a `patch`/`minor`/`major` bump. It
+   lints, tests, bumps `package.json`, regenerates `CHANGELOG.md` for the new version, and commits the
+   bump (no tag). Open a PR from that branch into `main` and merge. Locally this is
+   `npm version <bump> --no-git-tag-version && npm run changelog`.
+2. **Release** (workflow, manual dispatch, on `main`) — reads the version from `package.json`, creates and
+   pushes the `vX.Y.Z` tag, publishes to npm via trusted publishing, and creates the GitHub Release.
 
-You can do this bump locally, or run the **Prepare Release** workflow (manual dispatch, off `main`), which
-picks the bump from a `patch`/`minor`/`major` choice, runs the tests, and pushes the version commit and
-tag. The pushed `v*.*.*` tag then triggers the **Release** workflow.
-
-`CHANGELOG.md` is also the source of truth for **GitHub Release notes**: pushing a `v*.*.*` tag runs the
-release workflow, which extracts that version's section (`npm run release-notes <version>`, i.e.
-`scripts/extract-changelog.mjs`) and uses it as the release body, then publishes to npm.
+`CHANGELOG.md` is the source of truth for **GitHub Release notes**: the Release workflow extracts the
+version's section (`npm run release-notes <version>`, i.e. `scripts/extract-changelog.mjs`) and uses it as
+the release body. `npm run changelog` alone regenerates the changelog for the current `package.json`
+version if you ever need it outside the workflow.
 
 ## Testing
 
