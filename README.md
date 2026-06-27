@@ -7,7 +7,8 @@ as identifiers in structs, function parameters, and claims.
 
 > The spec is included as a git submodule at `submodules/urnfield-spec`. `urnfield` deliberately
 > restricts and in places diverges from [RFC 8141](https://www.rfc-editor.org/rfc/rfc8141) — see the
-> [specification](submodules/urnfield-spec/SPECIFICATION.md) for the normative details.
+> [specification](https://github.com/cperfect/urnfield-spec/blob/v1.0.0/SPECIFICATION.md) for the
+> normative details.
 
 Zero runtime dependencies. ESM only.
 
