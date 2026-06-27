@@ -73,6 +73,16 @@ describe('isWellFormed', () => {
     expect(isWellFormed({ ...base, nss: [] })).to.equal(false);
     expect(isWellFormed({ ...base, nid: '' })).to.equal(false);
   });
+
+  it('is false (never throws) for null/undefined/non-object inputs', () => {
+    const bad = (value: unknown): (() => boolean) => () => isWellFormed(value as ParsedUrn);
+    for (const value of [null, undefined, 'urn:x:y', 42]) {
+      expect(bad(value)).to.not.throw();
+      expect(isWellFormed(value as unknown as ParsedUrn)).to.equal(false);
+    }
+    // format() therefore reports UrnFormatError (not a raw TypeError) for these.
+    expect(() => format(null as unknown as ParsedUrn)).to.throw(UrnFormatError);
+  });
 });
 
 describe('format error handling', () => {
