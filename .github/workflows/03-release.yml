@@ -1,0 +1,44 @@
+name: Release
+permissions:
+  contents: write # create the GitHub Release
+  id-token: write # OIDC token for npm trusted publishing + provenance
+
+on:
+  push:
+    tags:
+      - "v*.*.*"
+
+jobs:
+  release:
+    name: Release
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out repository code
+        uses: actions/checkout@v4
+        with:
+          submodules: true
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+          cache: npm
+          registry-url: 'https://registry.npmjs.org'
+
+      # Trusted publishing requires npm >= 11.5.1, newer than the bundled npm.
+      - name: Update npm
+        run: npm install -g npm@latest
+
+      - name: NPM Install
+        run: npm ci
+
+      # prepublishOnly runs the tests + lint as the publish gate.
+      # Provenance and the OIDC exchange are automatic once a trusted publisher
+      # is configured for this package on npmjs.com; no NPM_TOKEN is needed.
+      - name: Publish to npm
+        run: npm publish --provenance --access public
+
+      - name: Create GitHub Release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: gh release create "$GITHUB_REF_NAME" --verify-tag --generate-notes
