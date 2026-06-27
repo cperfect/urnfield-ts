@@ -9,3 +9,5 @@
 export * from './types.js';
 export * from './errors.js';
 export { parse, tryParse } from './parse.js';
+export { format } from './format.js';
+export { isWellFormed } from './wellformed.js';
