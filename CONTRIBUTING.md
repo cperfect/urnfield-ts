@@ -31,8 +31,17 @@ Please update the tests to reflect your code changes. Pull requests will not be 
 
 ## Developing
 
-- `npm run tests` runs the tests
+The conformance fixtures live in a submodule; initialise it once after cloning:
+
+- `git submodule update --init` fetches the `urnfield-spec` conformance vectors the tests run against
+- `npm run tests` runs the tests (Mocha via tsx — TypeScript, no build step)
+- `npm run lint` runs ESLint over `src`
 - `npm run build` compiles TypeScript to `dist/`
 
 ## Running Examples
->TODO
+
+Runnable examples live in `src/examples/` (excluded from the published build). Run one with `tsx`:
+
+- `npx tsx src/examples/basic.ts` — parse / format / equals
+- `npx tsx src/examples/ietf-schema.ts` — the IETF namespace schema (spec §9.3)
+- `npx tsx src/examples/struct-field.ts` — a validated URN as a typed struct field
