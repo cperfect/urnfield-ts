@@ -25,6 +25,18 @@ JSDoc Comments should be provided for exported module members. Additional inline
 
 Please follow [conventional commits](https://www.conventionalcommits.org/en/v1.0.0/)
 
+These also drive the changelog (see [Releasing](#releasing)), so `feat:` and `fix:` types matter.
+
+## Releasing
+
+`CHANGELOG.md` is generated from the conventional commits since the last release tag, using
+[`conventional-changelog`](https://github.com/conventional-changelog/conventional-changelog):
+
+- `npm run changelog` regenerates `CHANGELOG.md` for the **current** `package.json` version.
+- `npm version <patch|minor|major>` bumps the version, runs `npm run changelog` automatically via the
+  `version` lifecycle script, and folds `CHANGELOG.md` into the version commit and tag — so a normal
+  release needs no manual changelog step.
+
 ## Testing
 
 Please update the tests to reflect your code changes. Pull requests will not be accepted if they are failing on GitHub actions.
