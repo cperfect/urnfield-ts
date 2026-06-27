@@ -19,7 +19,10 @@ import type {
 } from './types.js';
 import { matchesGlob } from './glob.js';
 
-const VALID: ValidationResult = { valid: true };
+/** A fresh success result. Returns a new object each call so callers can't share mutable state. */
+function valid(): ValidationResult {
+  return { valid: true };
+}
 
 function invalid(error: string): ValidationResult {
   return { valid: false, error };
@@ -36,7 +39,7 @@ function regexFullMatch(pattern: string, element: string): boolean {
  */
 function continueChain(next: Matcher | null, remaining: string[], delimiter: string): ValidationResult {
   if (next === null) {
-    return remaining.length === 0 ? VALID : invalid('too many elements');
+    return remaining.length === 0 ? valid() : invalid('too many elements');
   }
   return walk(next, remaining, delimiter);
 }
@@ -105,7 +108,7 @@ function walk(matcher: Matcher, elements: string[], delimiter: string): Validati
     } catch {
       return invalid(`invalid glob pattern "${matcher.pattern}"`);
     }
-    return matched ? VALID : invalid(`"${tail}" does not match glob "${matcher.pattern}"`);
+    return matched ? valid() : invalid(`"${tail}" does not match glob "${matcher.pattern}"`);
   }
   }
 }
