@@ -25,11 +25,22 @@ function splitNss(nss: string): Pick<ParsedUrn, 'nss' | 'nssSlashDelimiter'> {
  * step 4). A bare key records an empty value list (without overwriting an
  * existing one); `key=value` appends the value; any text after a second `=` in
  * an item is discarded; repeated keys accumulate their values in order.
+ *
+ * Returns `null` for a structurally invalid body — an empty item (e.g. from a
+ * leading/trailing or doubled `&`) or an empty key (a leading `=`). The grammar
+ * only constrains the character set, so this is the last place that can enforce
+ * key / key=value structure.
  */
-function parseParams(body: string): UrnParams {
+function parseParams(body: string): UrnParams | null {
   const params: UrnParams = {};
   for (const item of body.split('&')) {
+    if (item === '') {
+      return null; // empty item, e.g. "&&" or a leading/trailing "&"
+    }
     const eq = item.indexOf('=');
+    if (eq === 0) {
+      return null; // empty key, e.g. "=bar"
+    }
     if (eq === -1) {
       if (!(item in params)) {
         params[item] = [];
@@ -54,11 +65,16 @@ export function tryParse(input: string): ParsedUrn | null {
   if (comps === null) {
     return null;
   }
+  const query = comps.query === undefined ? {} : parseParams(comps.query);
+  const resolvers = comps.resolvers === undefined ? {} : parseParams(comps.resolvers);
+  if (query === null || resolvers === null) {
+    return null;
+  }
   return {
     nid: comps.nid,
     ...splitNss(comps.nss),
-    query: comps.query === undefined ? {} : parseParams(comps.query),
-    resolvers: comps.resolvers === undefined ? {} : parseParams(comps.resolvers),
+    query,
+    resolvers,
     fragment: comps.fragment ?? '',
   };
 }

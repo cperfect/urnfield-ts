@@ -42,6 +42,17 @@ describe('parse / tryParse error handling', () => {
     expect(tryParse('urn:isbn')).to.equal(null);
     expect(tryParse('urn:isbn:0451450523')).to.not.equal(null);
   });
+
+  it('rejects empty query/resolver items and empty keys', () => {
+    expect(tryParse('urn:example:x?=&&foo')).to.equal(null); // empty items
+    expect(tryParse('urn:example:x?==bar')).to.equal(null); // empty key
+    expect(tryParse('urn:example:x?=foo&')).to.equal(null); // trailing &
+    expect(tryParse('urn:example:x?=&foo')).to.equal(null); // leading &
+    expect(tryParse('urn:example:x?+=bar')).to.equal(null); // empty key in resolvers
+    expect(() => parse('urn:example:x?=&&foo')).to.throw(UrnParseError);
+    // a non-empty value with an empty-looking tail is still fine
+    expect(tryParse('urn:example:x?=foo=&bar')).to.not.equal(null); // foo -> [''], bar bare
+  });
 });
 
 describe('isWellFormed', () => {
