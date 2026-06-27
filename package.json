@@ -1,0 +1,50 @@
+{
+  "name": "@cperfect/urnfield",
+  "version": "1.0.0",
+  "description": "A Typescript implementation of urnfield",
+  "type": "module",
+  "main": "dist/index.js",
+  "exports": {
+    ".": {
+      "import": "./dist/index.js",
+      "types": "./dist/index.d.ts"
+    }
+  },
+  "types": "dist/index.d.ts",
+  "devDependencies": {
+    "@eslint/js": "^10.0.1",
+    "@types/chai": "^5.2.3",
+    "@types/mocha": "^10.0.10",
+    "@types/node": "^25.6.0",
+    "chai": "^6.2.2",
+    "eslint": "^10.2.0",
+    "mocha": "^11.7.5",
+    "tsx": "^4.19.3",
+    "typescript": "^6.0.2",
+    "typescript-eslint": "^8.58.1"
+  },
+  "scripts": {
+    "tests": "node --import ./node_modules/tsx/dist/esm/index.mjs node_modules/.bin/mocha 'test/**/*.ts'",
+    "lint": "eslint src",
+    "lint:fix": "npm run lint -- --fix",
+    "build": "rm -rf dist && tsc",
+    "prepare": "npm run build",
+    "prepublishOnly": "npm run tests && npm run lint",
+    "preversion": "npm run lint"
+  },
+  "author": "Chris Perfect (cperfect)",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/cperfect/crock32.git"
+  },
+  "publishConfig": {
+    "access": "public"
+  },
+  "files": [
+    "dist/**/*"
+  ],
+  "overrides": {
+    "serialize-javascript": "7.0.5"
+  }
+}
