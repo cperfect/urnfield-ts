@@ -6,11 +6,15 @@
  * See `submodules/urnfield-spec/conformance/README.md` for the fixture format.
  */
 import { readFileSync } from 'node:fs';
-import { resolve } from 'node:path';
+import { dirname, resolve } from 'node:path';
+import { fileURLToPath } from 'node:url';
 import { load as loadYaml } from 'js-yaml';
 import type { ParsedUrn, Matcher, ValidationResult } from '../../src/index.js';
 
-const CONFORMANCE_DIR = resolve(process.cwd(), 'submodules/urnfield-spec/conformance');
+// Resolve relative to this file (test/helpers/) so the loader works regardless
+// of the caller's working directory (workspace root, IDE, nested package).
+const HERE = dirname(fileURLToPath(import.meta.url));
+const CONFORMANCE_DIR = resolve(HERE, '../../submodules/urnfield-spec/conformance');
 
 /** A `{ version, kind, description, cases }` fixture file. */
 export interface Fixture<Case> {
