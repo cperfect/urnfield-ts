@@ -8,3 +8,4 @@
 
 export * from './types.js';
 export * from './errors.js';
+export { parse, tryParse } from './parse.js';
