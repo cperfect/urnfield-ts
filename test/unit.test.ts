@@ -164,6 +164,16 @@ describe('glob dialect operators', () => {
     expect(matchesGlob('[!a]', [], 'a')).to.equal(false);
   });
 
+  it('treats ^ inside a class as a literal, not a negation marker', () => {
+    // [^a] is the set { '^', 'a' }, not "anything but a".
+    expect(matchesGlob('[^a]', [], '^')).to.equal(true);
+    expect(matchesGlob('[^a]', [], 'a')).to.equal(true);
+    expect(matchesGlob('[^a]', [], 'b')).to.equal(false);
+    // negation via ! still excludes a literal ^ when listed
+    expect(matchesGlob('[!^]', [], 'x')).to.equal(true);
+    expect(matchesGlob('[!^]', [], '^')).to.equal(false);
+  });
+
   it('{a,b,c} alternation', () => {
     expect(matchesGlob('{foo,bar}.zip', ['/'], 'bar.zip')).to.equal(true);
     expect(matchesGlob('{foo,bar}.zip', ['/'], 'baz.zip')).to.equal(false);

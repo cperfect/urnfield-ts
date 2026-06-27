@@ -25,7 +25,11 @@ function escapeClassChars(chars: string[]): string {
   return chars.map((ch) => ch.replace(/[\\\]^-]/g, '\\$&')).join('');
 }
 
-/** Translate a glob `[...]` class body to a regex class body (`!` negates). */
+/**
+ * Translate a glob `[...]` class body to a regex class body. Negation is spelled
+ * `[!...]` in the dialect; a literal `^` must be escaped so the RegExp class does
+ * not read it as its own negation marker.
+ */
 function translateClassBody(body: string): string {
   let inner = body;
   let prefix = '';
@@ -33,7 +37,7 @@ function translateClassBody(body: string): string {
     prefix = '^';
     inner = inner.slice(1);
   }
-  return prefix + inner.replace(/\\/g, '\\\\');
+  return prefix + inner.replace(/[\\^]/g, '\\$&');
 }
 
 /** Index of the `}` closing the `{` at `start`, accounting for nesting; -1 if unbalanced. */
