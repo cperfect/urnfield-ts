@@ -1,0 +1,30 @@
+name: Prepare Release
+permissions:
+  contents: read
+
+on:
+  workflow_dispatch:
+
+jobs:
+  prepare:
+    name: Prepare
+    # Manually dispatched only, and never on the main branch.
+    if: github.ref != 'refs/heads/main'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out repository code
+        uses: actions/checkout@v4
+        with:
+          submodules: true
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+          cache: npm
+
+      - name: NPM Install
+        run: npm ci
+
+      - name: Run Prepare
+        run: npm run prepare
