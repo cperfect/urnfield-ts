@@ -36,7 +36,7 @@
   "license": "MIT",
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/cperfect/crock32.git"
+    "url": "git+https://github.com/cperfect/urnfield-ts.git"
   },
   "publishConfig": {
     "access": "public"
