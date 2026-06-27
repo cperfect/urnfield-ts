@@ -171,6 +171,26 @@ describe('schema builders', () => {
     expect(result.error).to.be.a('string').that.is.not.empty;
   });
 
+  it('returns invalid (never throws) for a malformed regex pattern', () => {
+    const sch = schema('x', regex('([')); // unbalanced group -> RegExp would throw
+    let result: ReturnType<typeof validate> | undefined;
+    expect(() => {
+      result = validate(sch, parse('urn:x:anything'));
+    }).to.not.throw();
+    expect(result?.valid).to.equal(false);
+    expect(result?.error).to.contain('invalid regex pattern');
+  });
+
+  it('returns invalid (never throws) for a malformed glob pattern', () => {
+    const sch = schema('x', glob('[z-a]', [])); // out-of-order range -> RegExp would throw
+    let result: ReturnType<typeof validate> | undefined;
+    expect(() => {
+      result = validate(sch, parse('urn:x:anything'));
+    }).to.not.throw();
+    expect(result?.valid).to.equal(false);
+    expect(result?.error).to.contain('invalid glob pattern');
+  });
+
   it('oneOfStrings selects the continuation by element', () => {
     const sch = schema('x', oneOfStrings({ foo: regex('^[0-9]+$'), bar: null }));
     expect(validate(sch, parse('urn:x:foo:123')).valid).to.equal(true);

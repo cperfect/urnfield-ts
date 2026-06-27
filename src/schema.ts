@@ -51,8 +51,17 @@ function matchSingle(
     return invalid('not enough elements');
   }
   const head = elements[0];
-  const matched =
-    matcher.type === 'exact' ? head === matcher.value : regexFullMatch(matcher.pattern, head);
+  let matched: boolean;
+  if (matcher.type === 'exact') {
+    matched = head === matcher.value;
+  } else {
+    // A malformed pattern must not escape the ValidationResult contract.
+    try {
+      matched = regexFullMatch(matcher.pattern, head);
+    } catch {
+      return invalid(`invalid regex pattern /${matcher.pattern}/`);
+    }
+  }
   if (!matched) {
     const expected = matcher.type === 'exact' ? `"${matcher.value}"` : `/${matcher.pattern}/`;
     return invalid(`element "${head}" does not match ${expected}`);
@@ -89,9 +98,14 @@ function walk(matcher: Matcher, elements: string[], delimiter: string): Validati
   case 'glob': {
     // Glob consumes all remaining elements, rejoined into the raw NSS tail.
     const tail = elements.join(delimiter);
-    return matchesGlob(matcher.pattern, matcher.separators, tail)
-      ? VALID
-      : invalid(`"${tail}" does not match glob "${matcher.pattern}"`);
+    let matched: boolean;
+    // A malformed pattern (e.g. an out-of-order range) must not escape the contract.
+    try {
+      matched = matchesGlob(matcher.pattern, matcher.separators, tail);
+    } catch {
+      return invalid(`invalid glob pattern "${matcher.pattern}"`);
+    }
+    return matched ? VALID : invalid(`"${tail}" does not match glob "${matcher.pattern}"`);
   }
   }
 }
