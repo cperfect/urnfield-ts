@@ -42,8 +42,13 @@ two manual steps:
 
 `CHANGELOG.md` is the source of truth for **GitHub Release notes**: the Release workflow extracts the
 version's section (`npm run release-notes <version>`, i.e. `scripts/extract-changelog.mjs`) and uses it as
-the release body. `npm run changelog` alone regenerates the changelog for the current `package.json`
-version if you ever need it outside the workflow.
+the release body.
+
+`npm run changelog` regenerates the **whole** file from git history (`-r 0`), so it is idempotent —
+re-running it on the same version updates that section in place rather than prepending a duplicate. Version
+sections are delimited by **release tags**, so per-version sections only appear once releases are tagged
+(commits since the last tag form the current, still-unreleased section). It needs full history and tags, so
+run `git fetch --tags` first if your clone is shallow (the workflows check out with `fetch-depth: 0`).
 
 ## Testing
 
