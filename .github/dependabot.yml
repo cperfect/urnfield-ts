@@ -8,13 +8,11 @@ updates:
     commit-message:
       prefix: chore
       include: scope
+    # Bundle every npm update (including majors) into a single PR per run.
     groups:
-      npm-minor-patch:
+      npm:
         patterns:
           - "*"
-        update-types:
-          - minor
-          - patch
 
   # GitHub Actions used by the workflows in .github/workflows.
   - package-ecosystem: github-actions
@@ -24,13 +22,11 @@ updates:
     commit-message:
       prefix: ci
       include: scope
+    # Bundle every GitHub Actions update (including majors) into a single PR.
     groups:
-      actions-minor-patch:
+      github-actions:
         patterns:
           - "*"
-        update-types:
-          - minor
-          - patch
 
   # The urnfield-spec conformance submodule.
   - package-ecosystem: gitsubmodule
