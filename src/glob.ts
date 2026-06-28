@@ -40,13 +40,25 @@ function translateClassBody(body: string): string {
   return prefix + inner.replace(/[\\^]/g, '\\$&');
 }
 
-/** Index of the `}` closing the `{` at `start`, accounting for nesting; -1 if unbalanced. */
+/**
+ * Index of the `}` closing the `{` at `start`, accounting for nesting; -1 if
+ * unbalanced. Braces inside a `[...]` character class are literal and ignored,
+ * so a class containing `}` (e.g. `{a,[}]}`) does not end the alternation early.
+ */
 function findBraceEnd(pattern: string, start: number): number {
   let depth = 0;
+  let inClass = false;
   for (let i = start; i < pattern.length; i++) {
-    if (pattern[i] === '{') {
+    const ch = pattern[i];
+    if (inClass) {
+      if (ch === ']') {
+        inClass = false;
+      }
+    } else if (ch === '[') {
+      inClass = true;
+    } else if (ch === '{') {
       depth++;
-    } else if (pattern[i] === '}') {
+    } else if (ch === '}') {
       depth--;
       if (depth === 0) {
         return i;

@@ -228,6 +228,13 @@ describe('glob dialect operators', () => {
     expect(matchesGlob('{foo,bar}.zip', ['/'], 'baz.zip')).to.equal(false);
   });
 
+  it('a } inside a class does not end the {..} alternation early', () => {
+    // {a,[}]} is "a" or the class { '}' }; the brace inside [..] is literal.
+    expect(matchesGlob('{a,[}]}', [], 'a')).to.equal(true);
+    expect(matchesGlob('{a,[}]}', [], '}')).to.equal(true);
+    expect(matchesGlob('{a,[}]}', [], 'b')).to.equal(false);
+  });
+
   it('matches the whole tail (anchored)', () => {
     expect(matchesGlob('abc', [], 'abcd')).to.equal(false);
   });
