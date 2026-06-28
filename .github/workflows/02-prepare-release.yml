@@ -29,6 +29,9 @@ jobs:
           submodules: true
           # Full history + tags so the changelog covers commits since the last tag.
           fetch-depth: 0
+          # Don't leave the git token in config during npm ci / lint / tests; the
+          # push step below supplies it explicitly for just that step.
+          persist-credentials: false
 
       - name: Setup Node
         uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
@@ -62,6 +65,8 @@ jobs:
           git commit -m "chore(release): v$VERSION"
 
       - name: Push branch
-        # Push explicitly to the dispatched branch so it does not depend on the
-        # checkout's upstream-tracking setup.
-        run: git push origin "HEAD:${{ github.ref_name }}"
+        # Push explicitly to the dispatched branch with the token supplied only
+        # here, so credentials are not persisted for npm ci / lint / tests.
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: git push "https://x-access-token:${GH_TOKEN}@github.com/${GITHUB_REPOSITORY}" "HEAD:${{ github.ref_name }}"
