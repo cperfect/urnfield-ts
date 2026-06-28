@@ -1,0 +1,36 @@
+name: Validate
+permissions:
+  contents: read
+
+on:
+  push:
+  workflow_dispatch:
+
+jobs:
+  validate:
+    name: Validate
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out repository code
+        uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4
+        with:
+          submodules: true
+          persist-credentials: false
+
+      - name: Setup Node
+        uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
+        with:
+          node-version: '24'
+          cache: npm
+
+      - name: NPM Install
+        run: npm ci
+
+      - name: Run Lint Check
+        run: npm run lint
+
+      - name: Run Build
+        run: npm run build
+
+      - name: Run Tests
+        run: npm run tests

@@ -1,0 +1,11 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(npm run tests:*)",
+      "Bash(npm run lint:*)",
+      "Bash(npm run build:*)",
+      "Bash(npm run changelog:*)",
+      "Bash(npm run release-notes:*)"
+    ]
+  }
+}

@@ -9,8 +9,27 @@ for parsing, formatting, validating, and comparing URNs (`urn:<NID>:<NSS>[?=quer
 for use as identifiers in structs, function params, and claims. `urnfield` deliberately restricts and
 diverges from RFC 8141 (e.g. `?=` query comes before `?+` resolvers; `key=a=b` drops the value).
 
-The project is an early scaffold: `package.json`, tooling, and the spec submodule are in place, but
-`src/` and `test/` are not yet created. New work implements the spec from scratch.
+The public surface is a set of **free functions over a plain `ParsedUrn` data model** (not a class), and
+`parse`/`format` throw typed errors while `isWellFormed`/`validate` report failure via their return value
+(see the README "API design decisions"). Zero runtime dependencies; ESM only.
+
+## Module map (`src/`)
+
+Each module maps to one spec section, and `src/index.ts` re-exports the public API.
+
+- `types.ts` — `ParsedUrn`, `Schema`/`Matcher` variants, `ValidationResult` (§3, §9).
+- `errors.ts` — `UrnParseError`, `UrnFormatError` (the only things that throw).
+- `grammar.ts` — the single anchored URN regex + raw component capture (§4).
+- `parse.ts` — `parse` (throws) / `tryParse` (null): NSS delimiter choice, `?=`/`?+` accumulation (§5).
+- `wellformed.ts` — `isWellFormed` (§7); `format.ts` — `format` + key sorting (§6).
+- `equals.ts` — `equals` (§8).
+- `glob.ts` — the pinned glob dialect compiled to an anchored `RegExp` (§10).
+- `schema.ts` — the matcher continuation-chain engine + `validate` + builders (`exact`, `regex`,
+  `oneOfStrings`, `oneOfSubschemas`, `glob`, `schema`) (§9).
+
+Tests live in `test/`: one `*.test.ts` per conformance file (driven by `test/helpers/conformance.ts`,
+which loads the submodule YAML), plus `unit.test.ts` for behaviour the fixtures don't pin (error
+contracts, round-trips, glob operators). Runnable examples are in `src/examples/` (excluded from build).
 
 ## The spec is the source of truth
 

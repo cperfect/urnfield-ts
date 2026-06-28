@@ -1,0 +1,83 @@
+name: Release
+permissions:
+  contents: write # create and push the tag, create the GitHub Release
+  id-token: write # OIDC token for npm trusted publishing + provenance
+
+on:
+  workflow_dispatch:
+
+jobs:
+  release:
+    name: Release
+    # Manually dispatched on main only; the version comes from package.json.
+    if: github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    environment: release
+    steps:
+      - name: Check out repository code
+        uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4
+        with:
+          submodules: true
+          # Don't leave the git token in config during npm ci / npm publish; the
+          # tag push below supplies it explicitly for just that step.
+          persist-credentials: false
+
+      - name: Setup Node
+        uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
+        with:
+          node-version: '24'
+          cache: npm
+          registry-url: 'https://registry.npmjs.org'
+
+      # Trusted publishing requires npm >= 11.5.1, newer than the bundled npm.
+      - name: Update npm
+        run: npm install -g npm@latest
+
+      - name: NPM Install
+        run: npm ci
+
+      - name: Resolve version
+        id: version
+        run: |
+          VERSION=$(node -p "require('./package.json').version")
+          echo "version=$VERSION" >> "$GITHUB_OUTPUT"
+          echo "tag=v$VERSION" >> "$GITHUB_OUTPUT"
+
+      - name: Configure git
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+
+      # Tag the current main commit locally; the tag is pushed only after a
+      # successful publish so a failed release never leaves a published tag.
+      - name: Create tag
+        env:
+          TAG: ${{ steps.version.outputs.tag }}
+        run: |
+          if git rev-parse -q --verify "refs/tags/$TAG" >/dev/null; then
+            echo "tag $TAG already exists" >&2
+            exit 1
+          fi
+          git tag -a "$TAG" -m "$TAG"
+
+      # prepublishOnly runs tests + lint as the publish gate. Provenance and the
+      # OIDC exchange are automatic once a trusted publisher is configured for
+      # this package on npmjs.com; no NPM_TOKEN is needed.
+      - name: Publish to npm
+        run: npm publish --provenance --access public
+
+      - name: Push tag
+        env:
+          TAG: ${{ steps.version.outputs.tag }}
+          GH_TOKEN: ${{ github.token }}
+        run: git push "https://x-access-token:${GH_TOKEN}@github.com/${GITHUB_REPOSITORY}" "$TAG"
+
+      # The CHANGELOG is the source of truth for release notes.
+      - name: Create GitHub Release
+        env:
+          GH_TOKEN: ${{ github.token }}
+          TAG: ${{ steps.version.outputs.tag }}
+          VERSION: ${{ steps.version.outputs.version }}
+        run: |
+          node scripts/extract-changelog.mjs "$VERSION" > release-notes.md
+          gh release create "$TAG" --verify-tag --notes-file release-notes.md

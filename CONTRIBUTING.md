@@ -25,14 +25,43 @@ JSDoc Comments should be provided for exported module members. Additional inline
 
 Please follow [conventional commits](https://www.conventionalcommits.org/en/v1.0.0/)
 
+These also drive the changelog (see [Releasing](#releasing)), so `feat:` and `fix:` types matter.
+
+## Releasing
+
+`CHANGELOG.md` is generated from the conventional commits since the last release tag, using
+[`conventional-changelog`](https://github.com/conventional-changelog/conventional-changelog). A release is
+two manual steps:
+
+1. **Prepare Release** (workflow, manual dispatch, off `main`) — pick a `patch`/`minor`/`major` bump. It
+   lints, tests, bumps `package.json`, regenerates `CHANGELOG.md` for the new version, and commits the
+   bump (no tag). Open a PR from that branch into `main` and merge. Locally this is
+   `npm version <bump> --no-git-tag-version --ignore-scripts && npm run changelog`.
+2. **Release** (workflow, manual dispatch, on `main`) — reads the version from `package.json`, creates and
+   pushes the `vX.Y.Z` tag, publishes to npm via trusted publishing, and creates the GitHub Release.
+
+`CHANGELOG.md` is the source of truth for **GitHub Release notes**: the Release workflow extracts the
+version's section (`npm run release-notes <version>`, i.e. `scripts/extract-changelog.mjs`) and uses it as
+the release body. `npm run changelog` alone regenerates the changelog for the current `package.json`
+version if you ever need it outside the workflow.
+
 ## Testing
 
 Please update the tests to reflect your code changes. Pull requests will not be accepted if they are failing on GitHub actions.
 
 ## Developing
 
-- `npm run tests` runs the tests
+The conformance fixtures live in a submodule; initialise it once after cloning:
+
+- `git submodule update --init` fetches the `urnfield-spec` conformance vectors the tests run against
+- `npm run tests` runs the tests (Mocha via tsx — TypeScript, no build step)
+- `npm run lint` runs ESLint over `src`
 - `npm run build` compiles TypeScript to `dist/`
 
 ## Running Examples
->TODO
+
+Runnable examples live in `src/examples/` (excluded from the published build). Run one with `tsx`:
+
+- `npx tsx src/examples/basic.ts` — parse / format / equals
+- `npx tsx src/examples/ietf-schema.ts` — the IETF namespace schema (spec §9.3)
+- `npx tsx src/examples/struct-field.ts` — a validated URN as a typed struct field

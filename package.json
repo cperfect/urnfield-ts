@@ -14,10 +14,13 @@
   "devDependencies": {
     "@eslint/js": "^10.0.1",
     "@types/chai": "^5.2.3",
+    "@types/js-yaml": "^4.0.9",
     "@types/mocha": "^10.0.10",
     "@types/node": "^25.6.0",
     "chai": "^6.2.2",
+    "conventional-changelog-cli": "^5.0.0",
     "eslint": "^10.2.0",
+    "js-yaml": "^5.2.0",
     "mocha": "^11.7.5",
     "tsx": "^4.19.3",
     "typescript": "^6.0.2",
@@ -30,7 +33,10 @@
     "build": "rm -rf dist && tsc",
     "prepare": "npm run build",
     "prepublishOnly": "npm run tests && npm run lint",
-    "preversion": "npm run lint"
+    "preversion": "npm run lint",
+    "changelog": "conventional-changelog -p conventionalcommits -i CHANGELOG.md -s",
+    "release-notes": "node scripts/extract-changelog.mjs",
+    "version": "npm run changelog && git add CHANGELOG.md"
   },
   "author": "Chris Perfect (cperfect)",
   "license": "MIT",
