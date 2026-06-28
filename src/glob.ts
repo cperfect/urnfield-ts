@@ -68,23 +68,33 @@ function findBraceEnd(pattern: string, start: number): number {
   return -1;
 }
 
-/** Split `{a,b,c}` body on top-level commas, ignoring commas nested in `{}`/`[]`. */
+/**
+ * Split a `{a,b,c}` body on top-level commas, ignoring commas nested in `{}`
+ * groups or literal inside a `[...]` character class (so the class `}`/`,`
+ * characters do not affect splitting, mirroring {@link findBraceEnd}).
+ */
 function splitTopComma(body: string): string[] {
   const parts: string[] = [];
   let depth = 0;
+  let inClass = false;
   let current = '';
   for (const ch of body) {
-    if (ch === '{' || ch === '[') {
+    if (inClass) {
+      if (ch === ']') {
+        inClass = false;
+      }
+    } else if (ch === '[') {
+      inClass = true;
+    } else if (ch === '{') {
       depth++;
-    } else if (ch === '}' || ch === ']') {
+    } else if (ch === '}') {
       depth--;
-    }
-    if (ch === ',' && depth === 0) {
+    } else if (ch === ',' && depth === 0) {
       parts.push(current);
       current = '';
-    } else {
-      current += ch;
+      continue;
     }
+    current += ch;
   }
   parts.push(current);
   return parts;

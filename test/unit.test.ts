@@ -235,6 +235,14 @@ describe('glob dialect operators', () => {
     expect(matchesGlob('{a,[}]}', [], 'b')).to.equal(false);
   });
 
+  it('a comma inside a class does not split the {..} alternation', () => {
+    // {[}a],b} is the class { '}', 'a' } or "b"; the comma in [..] is literal.
+    expect(matchesGlob('{[}a],b}', [], '}')).to.equal(true);
+    expect(matchesGlob('{[}a],b}', [], 'a')).to.equal(true);
+    expect(matchesGlob('{[}a],b}', [], 'b')).to.equal(true);
+    expect(matchesGlob('{[}a],b}', [], 'c')).to.equal(false);
+  });
+
   it('matches the whole tail (anchored)', () => {
     expect(matchesGlob('abc', [], 'abcd')).to.equal(false);
   });
