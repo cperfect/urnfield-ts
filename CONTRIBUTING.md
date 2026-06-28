@@ -36,7 +36,7 @@ two manual steps:
 1. **Prepare Release** (workflow, manual dispatch, off `main`) — pick a `patch`/`minor`/`major` bump. It
    lints, tests, bumps `package.json`, regenerates `CHANGELOG.md` for the new version, and commits the
    bump (no tag). Open a PR from that branch into `main` and merge. Locally this is
-   `npm version <bump> --no-git-tag-version && npm run changelog`.
+   `npm version <bump> --no-git-tag-version --ignore-scripts && npm run changelog`.
 2. **Release** (workflow, manual dispatch, on `main`) — reads the version from `package.json`, creates and
    pushes the `vX.Y.Z` tag, publishes to npm via trusted publishing, and creates the GitHub Release.
 
