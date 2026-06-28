@@ -11,9 +11,15 @@ import { fileURLToPath } from 'node:url';
 const ROOT = resolve(dirname(fileURLToPath(import.meta.url)), '..');
 const TSX = resolve(ROOT, 'node_modules/tsx/dist/esm/index.mjs');
 
+// Bound each spawned example independently; execFileSync blocks the event loop,
+// so Mocha's own timeout can't interrupt a hung process. Kept under the suite
+// timeout below so a stuck example is killed (throwing) rather than stalling.
+const EXAMPLE_TIMEOUT_MS = 20_000;
+
 function runExample(name: string): string {
   return execFileSync(process.execPath, ['--import', TSX, resolve(ROOT, 'src/examples', name)], {
     encoding: 'utf8',
+    timeout: EXAMPLE_TIMEOUT_MS,
   });
 }
 
