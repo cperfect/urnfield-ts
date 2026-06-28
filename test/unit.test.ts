@@ -125,6 +125,34 @@ describe('format error handling', () => {
     expect(bad({ fragment: 123 })).to.throw(UrnFormatError);
     expect(bad({ nss: ['ok', 7] })).to.throw(UrnFormatError);
   });
+
+  it('rejects components that cannot be losslessly encoded', () => {
+    // nid / nss / fragment with characters outside the grammar
+    expect(() => format({ ...base, nid: 'a b' })).to.throw(UrnFormatError);
+    expect(() => format({ ...base, nid: 'a:b' })).to.throw(UrnFormatError);
+    expect(() => format({ ...base, nss: ['a?b'] })).to.throw(UrnFormatError);
+    expect(() => format({ ...base, fragment: 'a b' })).to.throw(UrnFormatError);
+    expect(() => format({ ...base, fragment: 'a#b' })).to.throw(UrnFormatError);
+    // query key/value with the structural '=' or '&' that parse would mis-split
+    expect(() => format({ ...base, query: { 'a&b': [] } })).to.throw(UrnFormatError);
+    expect(() => format({ ...base, query: { 'a=b': [] } })).to.throw(UrnFormatError);
+    expect(() => format({ ...base, query: { k: ['a&b'] } })).to.throw(UrnFormatError);
+    expect(() => format({ ...base, query: { k: ['a=b'] } })).to.throw(UrnFormatError);
+    // an nss that renders to an empty string
+    expect(() => format({ ...base, nss: [''] })).to.throw(UrnFormatError);
+  });
+
+  it('still formats (and round-trips) genuinely encodable components', () => {
+    const ok: ParsedUrn = {
+      ...base,
+      nid: 'x-test',
+      nss: ['a.b', 'c-d'],
+      query: { 'foo-bar_*': ['v*'], bare: [] },
+      fragment: 'sec/3(a)',
+    };
+    expect(() => format(ok)).to.not.throw();
+    expect(parse(format(ok))).to.deep.equal(ok);
+  });
 });
 
 describe('round-trip properties', () => {

@@ -5,6 +5,16 @@ import type { ParsedUrn, UrnParams } from './types.js';
 import { UrnFormatError } from './errors.js';
 import { isWellFormed } from './wellformed.js';
 
+// Per-component character classes from the grammar (spec §4). A component that
+// steps outside these — or uses a structural `=` / `&` inside a query token —
+// cannot be losslessly encoded, so format() rejects it to remain the inverse of
+// parse(). Query keys/values are kv-chars minus `=` and `&` (which delimit them).
+const NID_RE = /^[A-Za-z0-9-]+$/;
+const NSS_DISALLOWED = /[^A-Za-z0-9:/._;-]/;
+const PARAM_KEY_RE = /^[A-Za-z0-9_*-]+$/;
+const PARAM_VALUE_RE = /^[A-Za-z0-9_*-]*$/;
+const FRAGMENT_RE = /^[A-Za-z0-9_*/()-]*$/;
+
 /**
  * Assert that joining `nss` with its chosen delimiter produces a string that
  * {@link parse} would split back into exactly `nss` with the same delimiter.
@@ -27,6 +37,9 @@ function assertNssRoundTrips(nss: string[], slashDelimiter: boolean): void {
   for (const element of nss) {
     if (typeof element !== 'string') {
       throw new UrnFormatError('every nss element must be a string');
+    }
+    if (NSS_DISALLOWED.test(element)) {
+      throw new UrnFormatError(`nss element ${JSON.stringify(element)} contains disallowed characters`);
     }
     if (element.includes(active)) {
       throw new UrnFormatError(
@@ -66,6 +79,9 @@ function renderParams(label: string, params: UrnParams): string {
   }
   const units: string[] = [];
   for (const key of Object.keys(params).sort()) {
+    if (!PARAM_KEY_RE.test(key)) {
+      throw new UrnFormatError(`${label} key ${JSON.stringify(key)} is not losslessly encodable`);
+    }
     const values = params[key];
     if (!Array.isArray(values)) {
       throw new UrnFormatError(`${label} key "${key}" must map to an array of strings`);
@@ -76,6 +92,11 @@ function renderParams(label: string, params: UrnParams): string {
       for (const value of values) {
         if (typeof value !== 'string') {
           throw new UrnFormatError(`${label} key "${key}" must map to an array of strings`);
+        }
+        if (!PARAM_VALUE_RE.test(value)) {
+          throw new UrnFormatError(
+            `${label} value ${JSON.stringify(value)} for key "${key}" is not losslessly encodable`,
+          );
         }
         units.push(`${key}=${value}`);
       }
@@ -93,8 +114,15 @@ export function format(urn: ParsedUrn): string {
   if (!isWellFormed(urn)) {
     throw new UrnFormatError('cannot format a URN that is not well-formed (needs a non-empty nid and nss)');
   }
+  if (!NID_RE.test(urn.nid)) {
+    throw new UrnFormatError(`nid ${JSON.stringify(urn.nid)} contains disallowed characters`);
+  }
   const delimiter = urn.nssSlashDelimiter ? '/' : ':';
   assertNssRoundTrips(urn.nss, urn.nssSlashDelimiter);
+  const renderedNss = urn.nss.join(delimiter);
+  if (renderedNss.length === 0) {
+    throw new UrnFormatError('nss must render to a non-empty string');
+  }
 
   // Validate every component before concatenating so failures are typed.
   const query = renderParams('query', urn.query);
@@ -102,8 +130,11 @@ export function format(urn: ParsedUrn): string {
   if (typeof urn.fragment !== 'string') {
     throw new UrnFormatError('fragment must be a string');
   }
+  if (!FRAGMENT_RE.test(urn.fragment)) {
+    throw new UrnFormatError(`fragment ${JSON.stringify(urn.fragment)} contains disallowed characters`);
+  }
 
-  let out = `urn:${urn.nid}:${urn.nss.join(delimiter)}`;
+  let out = `urn:${urn.nid}:${renderedNss}`;
   if (query.length > 0) {
     out += `?=${query}`;
   }
