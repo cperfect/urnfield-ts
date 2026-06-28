@@ -1,5 +1,11 @@
 # `urnfield` — URN fields for structs and function params
 
+[![Validate](https://github.com/cperfect/urnfield-ts/actions/workflows/01-validate.yml/badge.svg)](https://github.com/cperfect/urnfield-ts/actions/workflows/01-validate.yml)
+[![npm](https://img.shields.io/npm/v/@cperfect/urnfield.svg)](https://www.npmjs.com/package/@cperfect/urnfield)
+[![types](https://img.shields.io/npm/types/@cperfect/urnfield.svg)](https://www.npmjs.com/package/@cperfect/urnfield)
+[![license](https://img.shields.io/github/license/cperfect/urnfield-ts.svg)](./LICENSE)
+[![spec](https://img.shields.io/badge/urnfield--spec-v1.0.0-informational.svg)](https://github.com/cperfect/urnfield-spec/releases/tag/v1.0.0)
+
 A TypeScript implementation of the
 [`urnfield` specification v1.0.0](https://github.com/cperfect/urnfield-spec/releases/tag/v1.0.0):
 parse, format, validate, and compare URNs (`urn:<NID>:<NSS>[?=query][?+resolvers][#fragment]`) for use
