@@ -53,6 +53,20 @@ describe('parse / tryParse error handling', () => {
     // a non-empty value with an empty-looking tail is still fine
     expect(tryParse('urn:example:x?=foo=&bar')).to.not.equal(null); // foo -> [''], bar bare
   });
+
+  it('handles parameter names that collide with Object.prototype safely', () => {
+    for (const key of ['__proto__', 'constructor', 'hasOwnProperty', 'toString']) {
+      const urn = tryParse(`urn:x:y?=${key}=z`);
+      expect(urn, `${key} should parse without throwing`).to.not.equal(null);
+      expect(urn?.query[key]).to.deep.equal(['z']);
+    }
+    // a bare colliding key records an empty value list, not a dropped key
+    expect(tryParse('urn:x:y?=toString')?.query['toString']).to.deep.equal([]);
+    // absent components are still safe lookup tables (no inherited members)
+    expect(tryParse('urn:x:y')?.query['constructor']).to.equal(undefined);
+    // and nothing leaked onto Object.prototype
+    expect(({} as Record<string, unknown>).z).to.equal(undefined);
+  });
 });
 
 describe('isWellFormed', () => {

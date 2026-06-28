@@ -32,7 +32,10 @@ function splitNss(nss: string): Pick<ParsedUrn, 'nss' | 'nssSlashDelimiter'> {
  * key / key=value structure.
  */
 function parseParams(body: string): UrnParams | null {
-  const params: UrnParams = {};
+  // No prototype, so keys like `__proto__`/`constructor` are ordinary own
+  // properties: `in`, `??=`, and assignment stay safe for any attacker-supplied
+  // key and never touch Object.prototype.
+  const params: UrnParams = Object.create(null);
   for (const item of body.split('&')) {
     if (item === '') {
       return null; // empty item, e.g. "&&" or a leading/trailing "&"
@@ -65,8 +68,11 @@ export function tryParse(input: string): ParsedUrn | null {
   if (comps === null) {
     return null;
   }
-  const query = comps.query === undefined ? {} : parseParams(comps.query);
-  const resolvers = comps.resolvers === undefined ? {} : parseParams(comps.resolvers);
+  // Absent components default to a prototype-less empty map too, so query and
+  // resolvers are always safe lookup tables regardless of the input.
+  const query = comps.query === undefined ? (Object.create(null) as UrnParams) : parseParams(comps.query);
+  const resolvers =
+    comps.resolvers === undefined ? (Object.create(null) as UrnParams) : parseParams(comps.resolvers);
   if (query === null || resolvers === null) {
     return null;
   }
