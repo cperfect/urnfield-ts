@@ -48,24 +48,29 @@ jobs:
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
 
-      # Tag the current main commit with the package version, then push the tag.
-      - name: Create and push tag
+      # Tag the current main commit locally; the tag is pushed only after a
+      # successful publish so a failed release never leaves a published tag.
+      - name: Create tag
         env:
           TAG: ${{ steps.version.outputs.tag }}
-          GH_TOKEN: ${{ github.token }}
         run: |
           if git rev-parse -q --verify "refs/tags/$TAG" >/dev/null; then
             echo "tag $TAG already exists" >&2
             exit 1
           fi
           git tag -a "$TAG" -m "$TAG"
-          git push "https://x-access-token:${GH_TOKEN}@github.com/${GITHUB_REPOSITORY}" "$TAG"
 
       # prepublishOnly runs tests + lint as the publish gate. Provenance and the
       # OIDC exchange are automatic once a trusted publisher is configured for
       # this package on npmjs.com; no NPM_TOKEN is needed.
       - name: Publish to npm
         run: npm publish --provenance --access public
+
+      - name: Push tag
+        env:
+          TAG: ${{ steps.version.outputs.tag }}
+          GH_TOKEN: ${{ github.token }}
+        run: git push "https://x-access-token:${GH_TOKEN}@github.com/${GITHUB_REPOSITORY}" "$TAG"
 
       # The CHANGELOG is the source of truth for release notes.
       - name: Create GitHub Release
