@@ -62,4 +62,6 @@ jobs:
           git commit -m "chore(release): v$VERSION"
 
       - name: Push branch
-        run: git push
+        # Push explicitly to the dispatched branch so it does not depend on the
+        # checkout's upstream-tracking setup.
+        run: git push origin "HEAD:${{ github.ref_name }}"
