@@ -282,7 +282,8 @@ describe('schema builders', () => {
   it('reports a descriptive error (never throws) on failure', () => {
     const result = validate(ietf, parse('urn:ietf:rfc:abc'));
     expect(result.valid).to.equal(false);
-    expect(result.error).to.be.a('string').that.is.not.empty;
+    expect(result.error).to.be.a('string');
+    expect((result.error ?? '').length).to.be.greaterThan(0);
   });
 
   it('returns invalid (never throws) for a malformed regex pattern', () => {
