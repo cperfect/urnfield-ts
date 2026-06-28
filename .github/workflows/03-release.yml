@@ -18,6 +18,9 @@ jobs:
         uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4
         with:
           submodules: true
+          # Don't leave the git token in config during npm ci / npm publish; the
+          # tag push below supplies it explicitly for just that step.
+          persist-credentials: false
 
       - name: Setup Node
         uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
@@ -49,13 +52,14 @@ jobs:
       - name: Create and push tag
         env:
           TAG: ${{ steps.version.outputs.tag }}
+          GH_TOKEN: ${{ github.token }}
         run: |
           if git rev-parse -q --verify "refs/tags/$TAG" >/dev/null; then
             echo "tag $TAG already exists" >&2
             exit 1
           fi
           git tag -a "$TAG" -m "$TAG"
-          git push origin "$TAG"
+          git push "https://x-access-token:${GH_TOKEN}@github.com/${GITHUB_REPOSITORY}" "$TAG"
 
       # prepublishOnly runs tests + lint as the publish gate. Provenance and the
       # OIDC exchange are automatic once a trusted publisher is configured for
